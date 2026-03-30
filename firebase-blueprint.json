@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "tribute": {
+      "title": "Tribute",
+      "description": "A message of sympathy or a memory shared by a visitor.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "The name of the person leaving the tribute." },
+        "message": { "type": "string", "description": "The message text." },
+        "date": { "type": "string", "format": "date-time", "description": "When the tribute was posted." },
+        "uid": { "type": "string", "description": "The UID of the user who posted it, or 'anonymous' if not logged in." }
+      },
+      "required": ["name", "message", "date", "uid"]
+    },
+    "gallery_item": {
+      "title": "Gallery Item",
+      "description": "A photo or video shared in memory of André.",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["image", "video"], "description": "The type of media." },
+        "url": { "type": "string", "description": "The URL or base64 data of the media." },
+        "caption": { "type": "string", "description": "A short description or memory associated with the media." },
+        "authorName": { "type": "string", "description": "The name of the person who shared it." },
+        "date": { "type": "string", "format": "date-time", "description": "When it was shared." },
+        "uid": { "type": "string", "description": "The UID of the user who shared it, or 'anonymous' if not logged in." }
+      },
+      "required": ["type", "url", "authorName", "date", "uid"]
+    },
+    "counter": {
+      "title": "Counter",
+      "description": "A simple counter for tracking global events like lit candles.",
+      "type": "object",
+      "properties": {
+        "count": { "type": "integer", "description": "The current count value." },
+        "lastUpdated": { "type": "string", "format": "date-time", "description": "When the counter was last updated." }
+      },
+      "required": ["count", "lastUpdated"]
+    }
+  },
+  "firestore": {
+    "/tributes/{tributeId}": {
+      "schema": "tribute",
+      "description": "Collection of tributes."
+    },
+    "/gallery_items/{itemId}": {
+      "schema": "gallery_item",
+      "description": "Collection of gallery items (photos/videos)."
+    },
+    "/counters/{counterId}": {
+      "schema": "counter",
+      "description": "Global counters (e.g., candles)."
+    }
+  }
+}

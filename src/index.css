@@ -1,0 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Inter:wght@100..900&family=Great+Vibes&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Cormorant Garamond", serif;
+  --font-sans: "Inter", sans-serif;
+  --font-display: "Cormorant Garamond", serif;
+  --font-signature: "Vladimir Script", "Great Vibes", cursive;
+
+  --color-warm-white: #fdfcf8;
+  --color-beige-light: #f5f2ed;
+  --color-beige-dark: #e6e2d3;
+  --color-olive: #5a5a40;
+  --color-text-dark: #1a1a1a;
+  --color-text-mid: #6b6b6b;
+  --color-gold: #b8860b;
+  --color-gold-light: #d4af37;
+  --color-foreground: #1a1a1a;
+}
+
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(-1deg); opacity: 0.9; }
+  50% { transform: scale(1.1) rotate(1deg); opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.2; transform: scale(1) translateX(-50%); }
+  50% { opacity: 0.4; transform: scale(1.2) translateX(-50%); }
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.candle-flame {
+  width: 6px;
+  height: 12px;
+  background: linear-gradient(to top, #ff9d00, #ffeb3b);
+  border-radius: 50% 50% 20% 20%;
+  animation: flicker 0.6s infinite alternate ease-in-out;
+  filter: blur(0.5px);
+  box-shadow: 0 0 10px #ff9d00;
+}
+
+.candle-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+.candle-appear {
+  animation: appear 0.8s forwards ease-out;
+  opacity: 0;
+}
+
+body {
+  @apply bg-warm-white text-text-dark font-sans;
+}
+
+.serif {
+  @apply font-serif;
+}
+
+.signature-ink {
+  filter: contrast(1.1) brightness(0.9) blur(0.2px);
+  opacity: 0.9;
+  text-shadow: 0.5px 0.5px 1px rgba(0,0,0,0.1);
+}

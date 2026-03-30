@@ -1,0 +1,115 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: tributes
+    // Document ID: auto-generated
+    // Fields:
+    //   - name: string (required, < 100 chars)
+    //   - message: string (required, < 1000 chars)
+    //   - date: string (required, ISO 8601)
+    //   - uid: string (required, matches auth.uid)
+    //
+    // Collection: gallery_items
+    // Document ID: auto-generated
+    // Fields:
+    //   - type: string (required, ['image', 'video'])
+    //   - url: string (required, < 1MB for base64 or URL)
+    //   - caption: string (optional, < 500 chars)
+    //   - authorName: string (required, < 100 chars)
+    //   - date: string (required, ISO 8601)
+    //   - uid: string (required, matches auth.uid)
+    //   - creatorId: string (optional, used for local deletion rights)
+    //
+    // Collection: counters
+    // Document ID: 'candles'
+    // Fields:
+    //   - count: integer (required, increment only)
+    //   - lastUpdated: string (required, ISO 8601)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    function isValidString(field, minLen, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() >= minLen &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string &&
+             dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    function isAdmin() {
+      return request.auth != null && 
+             request.auth.token.email == "bosseveron@gmail.com" && 
+             request.auth.token.email_verified == true;
+    }
+
+    function isValidCounter(data) {
+      return data.keys().hasAll(['count', 'lastUpdated']) &&
+             data.keys().hasOnly(['count', 'lastUpdated']) &&
+             data.count is int &&
+             isValidDateString(data.lastUpdated);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidTribute(data) {
+      return data.keys().hasAll(['name', 'message', 'date', 'uid']) &&
+             data.keys().hasOnly(['name', 'message', 'date', 'uid']) &&
+             isValidString('name', 1, 100) &&
+             isValidString('message', 1, 1000) &&
+             isValidDateString(data.date) &&
+             data.uid == 'anonymous';
+    }
+
+    function isValidGalleryItem(data) {
+      return data.keys().hasAll(['type', 'url', 'authorName', 'date', 'uid']) &&
+             data.keys().hasOnly(['type', 'url', 'authorName', 'date', 'uid', 'caption', 'creatorId']) &&
+             data.type in ['image', 'video'] &&
+             isValidString('url', 1, 1048576) && // Max 1MB for base64 or URL
+             (!('caption' in data) || isValidString('caption', 0, 500)) &&
+             isValidString('authorName', 1, 100) &&
+             isValidDateString(data.date) &&
+             data.uid == 'anonymous';
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /tributes/{tributeId} {
+      allow read: if true; // Public memorial
+      allow create: if isValidTribute(request.resource.data);
+      allow update, delete: if false; // Tributes are permanent once posted
+    }
+
+    match /gallery_items/{itemId} {
+      allow read: if true; // Public memorial
+      allow create: if isValidGalleryItem(request.resource.data);
+      allow update: if false; 
+      allow delete: if true; // UI controls who can delete via creatorId check
+    }
+
+    match /counters/{counterId} {
+      allow read: if true;
+      allow create: if counterId == 'candles' && 
+                      isValidCounter(request.resource.data) &&
+                      (request.resource.data.count == 1 || isAdmin());
+      allow update: if counterId == 'candles' &&
+                      isValidCounter(request.resource.data) &&
+                      (request.resource.data.count == resource.data.count + 1 || isAdmin());
+    }
+  }
+}
